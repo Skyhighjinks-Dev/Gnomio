@@ -61,6 +61,11 @@ build CMakeFiles/Gnomio.dir/src/Minecraft/Authentication/MCAuth.cpp.obj: CXX_COM
   OBJECT_DIR = CMakeFiles\Gnomio.dir
   OBJECT_FILE_DIR = CMakeFiles\Gnomio.dir\src\Minecraft\Authentication
 
+build CMakeFiles/Gnomio.dir/Resources/resources.rc.obj: RC_COMPILER__Gnomio_unscanned_Debug D$:/Gnomio/Resources/resources.rc || cmake_object_order_depends_target_Gnomio
+  DEP_FILE = CMakeFiles\Gnomio.dir\Resources\resources.rc.obj.d
+  OBJECT_DIR = CMakeFiles\Gnomio.dir
+  OBJECT_FILE_DIR = CMakeFiles\Gnomio.dir\Resources
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Gnomio
@@ -69,9 +74,9 @@ build CMakeFiles/Gnomio.dir/src/Minecraft/Authentication/MCAuth.cpp.obj: CXX_COM
 #############################################
 # Link the executable Gnomio.exe
 
-build Gnomio.exe: CXX_EXECUTABLE_LINKER__Gnomio_Debug CMakeFiles/Gnomio.dir/src/main.cpp.obj CMakeFiles/Gnomio.dir/src/Minecraft/Authentication/MCAuth.cpp.obj
+build Gnomio.exe: CXX_EXECUTABLE_LINKER__Gnomio_Debug CMakeFiles/Gnomio.dir/src/main.cpp.obj CMakeFiles/Gnomio.dir/src/Minecraft/Authentication/MCAuth.cpp.obj CMakeFiles/Gnomio.dir/Resources/resources.rc.obj | C$:/Users/amdro/vcpkg/installed/x64-windows/lib/libcurl.lib
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = C:/Users/amdro/vcpkg/installed/x64-windows/lib/libcurl.lib  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Gnomio.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
