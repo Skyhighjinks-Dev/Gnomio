@@ -1,0 +1,3 @@
+D:/Gnomio/cmake-build-debug/CMakeFiles/Gnomio.dir
+D:/Gnomio/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Gnomio/cmake-build-debug/CMakeFiles/rebuild_cache.dir
