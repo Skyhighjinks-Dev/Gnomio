@@ -49,3 +49,7 @@ Makefile
 
 # Ignore CLion specific cache
 .clion.cache/
+
+build/
+cmake-build-debug/
+
