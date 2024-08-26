@@ -11,8 +11,8 @@ set(CURL_INCLUDE_DIR "C:/Users/amdro/vcpkg/installed/x64-windows/include")
 set(CURL_LIBRARY "C:/Users/amdro/vcpkg/installed/x64-windows/lib/libcurl.lib")
 
 add_executable(Gnomio src/main.cpp
-        src/Minecraft/Authentication/MCAuth.cpp
-        src/Minecraft/Authentication/MCAuth.h
         Resources/resources.rc
+        src/Processes/MCProcess.cpp
+        src/Processes/MCProcess.h
 )
 target_link_libraries(Gnomio PRIVATE ${CURL_LIBRARY})
