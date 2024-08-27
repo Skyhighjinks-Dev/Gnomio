@@ -19,6 +19,7 @@ private:
 public:
     MCProcess(DWORD nProcessID);
     void SendKeys(const std::string& nMessage, const int nTimeout);
+    HWND& GetProcessHandle();
 
 private:
     void RetrieveAndAssignData();

@@ -21,7 +21,7 @@ echo Created %BUILD_PATH%
 
 cd "%BUILD_PATH%"
 echo Creating CMAKE config build
-"%CMAKE_PATH%\cmake.exe" -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="C:/Users/amdro/vcpkg/scripts/buildsystems/vcpkg.cmake" "%BATCH_DIR%"
+"%CMAKE_PATH%\cmake.exe" -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE="C:/Dev/git/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake" "%BATCH_DIR%"
 echo Finished.
 echo Creating CMAKE project build
 "%CMAKE_PATH%\cmake.exe" --build .

@@ -64,3 +64,7 @@ void MCProcess::SendKeys(const std::string& nMessage, const int nTimeout) {
 
     SendKeys(keys, nTimeout);
 }
+
+HWND& MCProcess::GetProcessHandle() {
+    return this->Process;
+}
