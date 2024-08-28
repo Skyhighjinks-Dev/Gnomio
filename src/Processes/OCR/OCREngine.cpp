@@ -200,4 +200,5 @@ int OCREngine::ProcessOCR(const HWND& nHWND) {
     this->ProcessROIAndEntireImage(mat, roi, "Large Image");
 
     return 0;
+
 }
