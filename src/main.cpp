@@ -1,9 +1,9 @@
-#include "Processes/OCR/OCREngine.h"
-#include "Processes/MCProcessManager.h"
-#include "Processes/MCProcess.h"
+#include "../include/Processes/MCProcess.h"
+#include "../include/Processes/MCProcessManager.h"
+#include "../include/Processes/OCR/OCREngine.h"
 
 int main() {
-    DWORD procID[] = { 24872 };
+    DWORD procID[] = { 8580 };
     MCProcessManager mcManager;
 
     for(DWORD dWord : procID) {

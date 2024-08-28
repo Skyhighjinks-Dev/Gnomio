@@ -1,4 +1,4 @@
-#include "OCREngine.h"
+#include "../../../include/Processes/OCR/OCREngine.h"
 
 bool OCREngine::AreBoxesClose(const cv::Rect& a, const cv::Rect& b) {
     int distanceThreshold = 20; // Adjust this threshold as necessary
@@ -8,6 +8,12 @@ bool OCREngine::AreBoxesClose(const cv::Rect& a, const cv::Rect& b) {
 std::vector<OCREngine::OCRResult> OCREngine::PerformOCR(const cv::Mat& nImg) {
     std::vector<OCRResult> results;
 
+    // Preprocess the image
+    cv::Mat processedImg;
+    cv::cvtColor(nImg, processedImg, cv::COLOR_BGR2GRAY); // Convert to grayscale
+    cv::GaussianBlur(processedImg, processedImg, cv::Size(3, 3), 0); // Apply slight blur to reduce noise
+    cv::threshold(processedImg, processedImg, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU); // Binarization
+
     // Initialize Tesseract API
     tesseract::TessBaseAPI *ocr = new tesseract::TessBaseAPI();
     if (ocr->Init(NULL, "eng")) {
@@ -15,11 +21,14 @@ std::vector<OCREngine::OCRResult> OCREngine::PerformOCR(const cv::Mat& nImg) {
         return results;
     }
 
+    // Set OCR recognition mode
+    ocr->SetPageSegMode(tesseract::PSM_AUTO); // or PSM_SINGLE_BLOCK, PSM_SINGLE_LINE depending on the structure
+
     // Set the whitelist for characters to a-z, A-Z, and space
-    ocr->SetVariable("tessedit_char_whitelist", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ");
+    ocr->SetVariable("tessedit_char_whitelist", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ ");
 
     // Set the image for Tesseract
-    ocr->SetImage(nImg.data, nImg.cols, nImg.rows, 3, nImg.step);
+    ocr->SetImage(processedImg.data, processedImg.cols, processedImg.rows, 1, processedImg.step); // Note: Pass the grayscale image
 
     // Get OCR result
     ocr->Recognize(0);
@@ -49,6 +58,7 @@ std::vector<OCREngine::OCRResult> OCREngine::PerformOCR(const cv::Mat& nImg) {
     return results;
 }
 
+
 void OCREngine::MergeOCRResults(std::vector<OCRResult>& nResults) {
     std::vector<OCRResult> mergedResults;
 
@@ -60,13 +70,19 @@ void OCREngine::MergeOCRResults(std::vector<OCRResult>& nResults) {
         return a.boundingBox.y < b.boundingBox.y;
     });
 
-    // Merge the text blocks that are close to each other
-    for (size_t i = 0; i < nResults.size(); ++i) {
-        if (!mergedResults.empty() && AreBoxesClose(mergedResults.back().boundingBox, nResults[i].boundingBox)) {
-            mergedResults.back().text += " " + nResults[i].text;
-            mergedResults.back().boundingBox = mergedResults.back().boundingBox | nResults[i].boundingBox;
-        } else {
-            mergedResults.push_back(nResults[i]);
+    for (auto& result : nResults) {
+        bool merged = false;
+        for (auto& mergedResult : mergedResults) {
+            if (AreBoxesClose(mergedResult.boundingBox, result.boundingBox)) {
+                // Merge text and bounding boxes
+                mergedResult.text += " " + result.text;
+                mergedResult.boundingBox = mergedResult.boundingBox | result.boundingBox;
+                merged = true;
+                break;
+            }
+        }
+        if (!merged) {
+            mergedResults.push_back(result);
         }
     }
 
@@ -76,61 +92,57 @@ void OCREngine::MergeOCRResults(std::vector<OCRResult>& nResults) {
 void OCREngine::ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nROI, const std::string& nImgName) {
     cv::Mat imgCopy = nImg.clone();
 
-    // Extract the region of interest (ROI)
-    cv::Mat roiImg = nImg(nROI);
+    // Ensure the ROI is within the image bounds
+    cv::Rect boundedROI = nROI & cv::Rect(0, 0, nImg.cols, nImg.rows);
 
-    // Perform OCR on the ROI
+    // Process the main region of interest (ROI)
+    cv::Mat roiImg = nImg(boundedROI);
     std::vector<OCRResult> roiResults = PerformOCR(roiImg);
     MergeOCRResults(roiResults);
 
-    // Display results and overlay them on the original image
-    std::cout << "Results for " << nImgName << " (ROI):" << std::endl;
     for (const auto& result : roiResults) {
-        // Adjust the bounding box to match the original image coordinates
         cv::Rect adjustedBox = result.boundingBox;
-        adjustedBox.x += nROI.x;
-        adjustedBox.y += nROI.y;
+        adjustedBox.x += boundedROI.x;
+        adjustedBox.y += boundedROI.y;
 
-        // Print the text and bounding box
-        std::cout << "Text: " << result.text << " - Location: "
-                  << "x: " << adjustedBox.x << ", y: "
-                  << adjustedBox.y << ", width: "
-                  << adjustedBox.width << ", height: "
-                  << adjustedBox.height << std::endl;
-
-        // Draw bounding box and text on the original image
         cv::rectangle(imgCopy, adjustedBox, cv::Scalar(0, 255, 0), 2);
         cv::putText(imgCopy, result.text, cv::Point(adjustedBox.x, adjustedBox.y - 5),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
     }
 
-    // Create a mask for the ROI to ignore it during the full image OCR
-    cv::Mat mask = cv::Mat::zeros(nImg.size(), CV_8UC1);
-    mask(nROI).setTo(cv::Scalar(255)); // Set the ROI region to white in the mask
+    // Define additional ROIs with boundary checks
+    cv::Rect additionalROI(320, 140, 800, 600);
+    additionalROI &= cv::Rect(0, 0, nImg.cols, nImg.rows); // Ensure within bounds
+    cv::Mat additionalRoiImg = nImg(additionalROI);
 
-    // Invert the mask
-    cv::bitwise_not(mask, mask);
+    std::vector<OCRResult> additionalResults = PerformOCR(additionalRoiImg);
+    MergeOCRResults(additionalResults);
 
-    // Apply the mask to the original image (only the non-ROI area will be processed)
-    cv::Mat maskedImg;
-    nImg.copyTo(maskedImg, mask);
+    for (const auto& result : additionalResults) {
+        cv::Rect adjustedBox = result.boundingBox;
+        adjustedBox.x += additionalROI.x;
+        adjustedBox.y += additionalROI.y;
 
-    // Perform OCR on the non-ROI part of the image
-    std::vector<OCRResult> fullImageResults = PerformOCR(maskedImg);
-    MergeOCRResults(fullImageResults);
+        cv::rectangle(imgCopy, adjustedBox, cv::Scalar(255, 0, 0), 2);
+        cv::putText(imgCopy, result.text, cv::Point(adjustedBox.x, adjustedBox.y - 5),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 1);
+    }
 
-    std::cout << "Results for " << nImgName << " (Full Image excluding ROI):" << std::endl;
-    for (const auto& result : fullImageResults) {
-        // No need to adjust bounding boxes as we are working on the entire image
-        std::cout << "Text: " << result.text << " - Location: "
-                  << "x: " << result.boundingBox.x << ", y: "
-                  << result.boundingBox.y << ", width: "
-                  << result.boundingBox.width << ", height: "
-                  << result.boundingBox.height << std::endl;
+    // Additional bottom ROI with boundary checks
+    cv::Rect bottomROI(320, 600, 800, 200);
+    bottomROI &= cv::Rect(0, 0, nImg.cols, nImg.rows); // Ensure within bounds
+    cv::Mat bottomRoiImg = nImg(bottomROI);
 
-        // Draw bounding box and text on the original image
-        cv::rectangle(imgCopy, result.boundingBox, cv::Scalar(0, 0, 255), 2);
-        cv::putText(imgCopy, result.text, cv::Point(result.boundingBox.x, result.boundingBox.y - 5),
+    std::vector<OCRResult> bottomResults = PerformOCR(bottomRoiImg);
+    MergeOCRResults(bottomResults);
+
+    for (const auto& result : bottomResults) {
+        cv::Rect adjustedBox = result.boundingBox;
+        adjustedBox.x += bottomROI.x;
+        adjustedBox.y += bottomROI.y;
+
+        cv::rectangle(imgCopy, adjustedBox, cv::Scalar(0, 0, 255), 2);
+        cv::putText(imgCopy, result.text, cv::Point(adjustedBox.x, adjustedBox.y - 5),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
     }
 
@@ -176,12 +188,13 @@ int OCREngine::ProcessOCR(const HWND& nHWND) {
     DeleteDC(hWindowCompatibleDC);
     ReleaseDC(nHWND, hWindowDC);
 
-    // Define the region of interest (ROI)
+    // Define the main region of interest (ROI) with boundary check
     int x = 90;
-    int y = 150;
+    int y = 140;
     int width = 250;
     int height = 350;
     cv::Rect roi(x, y, width, height);
+    roi &= cv::Rect(0, 0, mat.cols, mat.rows); // Ensure within bounds
 
     // Process ROI and then the rest of the image
     this->ProcessROIAndEntireImage(mat, roi, "Large Image");

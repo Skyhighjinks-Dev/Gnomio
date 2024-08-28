@@ -16,17 +16,12 @@ find_package(Tesseract CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(utf8_range CONFIG REQUIRED)
 
-# Add executable and source files
-add_executable(Gnomio
-        src/main.cpp
-        Resources/resources.rc
-        src/Processes/MCProcess.cpp
-        src/Processes/MCProcess.h
-        src/Processes/MCProcessManager.cpp
-        src/Processes/MCProcessManager.h
-        src/Processes/OCR/OCREngine.cpp
-        src/Processes/OCR/OCREngine.h
-)
+# Automatically find all source and header files in the src and include directories
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "include/*.h" "include/*.hpp")
+
+# Add executable with all source files
+add_executable(Gnomio ${SOURCES} ${HEADERS} Resources/resources.rc)
 
 # Include directories for libraries
 target_include_directories(Gnomio PRIVATE

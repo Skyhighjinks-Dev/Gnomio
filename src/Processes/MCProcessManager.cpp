@@ -2,7 +2,7 @@
 // Created by amdro on 26/08/2024.
 //
 
-#include "MCProcessManager.h"
+#include "../../include/Processes/MCProcessManager.h"
 #include <chrono>
 #include <thread>
 

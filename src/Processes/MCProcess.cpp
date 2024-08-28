@@ -2,7 +2,7 @@
 // Created by amdro on 26/08/2024.
 //
 
-#include "MCProcess.h"
+#include "../../include/Processes/MCProcess.h"
 
 
 
