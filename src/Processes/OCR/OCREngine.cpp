@@ -5,7 +5,7 @@ bool OCREngine::AreBoxesClose(const cv::Rect& a, const cv::Rect& b) {
     return (abs(a.y - b.y) < distanceThreshold) && (abs(a.x + a.width - b.x) < distanceThreshold);
 }
 
-std::vector<OCREngine::OCRResult> OCREngine::PerformOCR(const cv::Mat& nImg) {
+std::vector<OCRResult> OCREngine::PerformOCR(const cv::Mat& nImg) {
     std::vector<OCRResult> results;
 
     // Preprocess the image
@@ -89,7 +89,7 @@ void OCREngine::MergeOCRResults(std::vector<OCRResult>& nResults) {
     nResults = mergedResults;
 }
 
-void OCREngine::ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nROI, const std::string& nImgName) {
+std::vector<OCRResult> OCREngine::ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nROI, const std::string& nImgName) {
     cv::Mat imgCopy = nImg.clone();
 
     // Ensure the ROI is within the image bounds
@@ -146,12 +146,18 @@ void OCREngine::ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nR
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
     }
 
-    // Show the image with bounding boxes
-    cv::imshow(nImgName, imgCopy);
-    cv::waitKey(0);
+    std::vector<OCRResult> dataResults;
+    for(const OCRResult& result : roiResults) {
+        dataResults.emplace_back(result);
+    }
+    for(const OCRResult& result : additionalResults) {
+        dataResults.emplace_back(result);
+    }
+
+    return dataResults;
 }
 
-int OCREngine::ProcessOCR(const HWND& nHWND) {
+std::vector<OCRResult> OCREngine::ProcessOCR(const HWND& nHWND) {
     // Get the device context (DC) of the window
     HDC hWindowDC = GetDC(nHWND);
 
@@ -197,8 +203,5 @@ int OCREngine::ProcessOCR(const HWND& nHWND) {
     roi &= cv::Rect(0, 0, mat.cols, mat.rows); // Ensure within bounds
 
     // Process ROI and then the rest of the image
-    this->ProcessROIAndEntireImage(mat, roi, "Large Image");
-
-    return 0;
-
+    return this->ProcessROIAndEntireImage(mat, roi, "Large Image");;
 }

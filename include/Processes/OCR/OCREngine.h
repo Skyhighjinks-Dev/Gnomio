@@ -5,18 +5,18 @@
 #include <vector>
 #include <windows.h>
 
-class OCREngine {
-private:
-    struct OCRResult {
-        std::string text;
-        cv::Rect boundingBox;
-    };
+struct OCRResult {
+    std::string text;
+    cv::Rect boundingBox;
+};
 
+class OCREngine {
+public:
+    std::vector<OCRResult> ProcessOCR(const HWND& nPath);
+private:
     bool AreBoxesClose(const cv::Rect& a, const cv::Rect& b);
     std::vector<OCRResult> PerformOCR(const cv::Mat& nImg);
     void MergeOCRResults(std::vector<OCRResult>& nResults);
-    void ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nROI, const std::string& nImgName);
+    std::vector<OCRResult> ProcessROIAndEntireImage(const cv::Mat& nImg, const cv::Rect& nROI, const std::string& nImgName);
     cv::Mat CaptureWindow(HWND nHWND);
-public:
-    int ProcessOCR(const HWND& nPath);
 };

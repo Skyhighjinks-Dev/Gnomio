@@ -19,6 +19,7 @@ private:
 public:
     MCProcess(DWORD nProcessID);
     void SendKeys(const std::string& nMessage, const int nTimeout);
+    void ClickCoordinates(const int& x, const int& y) const;
     HWND& GetProcessHandle();
 
 private:

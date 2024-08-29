@@ -3,7 +3,7 @@
 #include "../include/Processes/OCR/OCREngine.h"
 
 int main() {
-    DWORD procID[] = { 8580 };
+    DWORD procID[] = { 20864 };
     MCProcessManager mcManager;
 
     for(DWORD dWord : procID) {
@@ -15,11 +15,12 @@ int main() {
     SetWindowPos(hwnd, HWND_TOP, 0, 0, 1300, 800, SWP_NOZORDER | SWP_NOMOVE);
 
     OCREngine eng;
-    if(eng.ProcessOCR(hwnd) == 0) {
-        std::cout << "OCR Success" << std::endl;
-    }
-    else {
-        std::cout << "OCR Failed" << std::endl;
+    std::vector<OCRResult> result = eng.ProcessOCR(hwnd);
+
+
+    for(OCRResult ocr : result) {
+        if(ocr.text.compare("Pumpkin/Melon") == 0)
+            mcManager.GetProcessPtr(0)->ClickCoordinates(ocr.boundingBox.x, ocr.boundingBox.y);
     }
 
     int z;

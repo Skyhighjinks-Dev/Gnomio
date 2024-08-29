@@ -68,3 +68,30 @@ void MCProcess::SendKeys(const std::string& nMessage, const int nTimeout) {
 HWND& MCProcess::GetProcessHandle() {
     return this->Process;
 }
+
+
+void MCProcess::ClickCoordinates(const int &x, const int &y) const {
+    if (this->Process == NULL) {
+        std::cout << "Invalid window handle." << std::endl;
+        return;
+    }
+
+    POINT point;
+    point.x = x;
+    point.y = y;
+
+    std::cout << "Simulating click at\nX - " << point.x << "\nY - " << point.y << std::endl;
+
+    // Allow time for the window to come to the foreground
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Convert screen coordinates to client area coordinates
+    ScreenToClient(this->Process, &point);
+    SetCursorPos(point.x, point.y);
+
+    LPARAM lParam = MAKELPARAM(point.x, point.y);
+
+    // Post messages to simulate mouse click
+    PostMessage(this->Process, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
+    PostMessage(this->Process, WM_LBUTTONUP, 0, lParam);
+}
