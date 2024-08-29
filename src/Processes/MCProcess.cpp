@@ -4,8 +4,6 @@
 
 #include "../../include/Processes/MCProcess.h"
 
-
-
 MCProcess::MCProcess(DWORD nProcessID) {
     this->ProcessID = nProcessID;
 
@@ -69,6 +67,15 @@ HWND& MCProcess::GetProcessHandle() {
     return this->Process;
 }
 
+int MCProcess::GetDpiForWindow() const {
+    HMONITOR hMonitor = MonitorFromWindow(this->Process, MONITOR_DEFAULTTONEAREST);
+    UINT dpiX = 96, dpiY = 96; // Default DPI is 96 (100%)
+    if (SUCCEEDED(GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY))) {
+        return dpiX; // Assuming square pixels (dpiX == dpiY)
+    }
+    return 96; // Default DPI if the call fails
+}
+
 
 void MCProcess::ClickCoordinates(const int &x, const int &y) const {
     if (this->Process == NULL) {
@@ -76,22 +83,43 @@ void MCProcess::ClickCoordinates(const int &x, const int &y) const {
         return;
     }
 
+    int ogX = x;
+    int ogY = y;
+
+
+    // Bring the window to the foreground
+    SetForegroundWindow(this->Process);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Confirm that the window is in the foreground
+    if (GetForegroundWindow() != this->Process) {
+        std::cout << "Failed to bring the window to the foreground." << std::endl;
+        return;
+    }
+
     POINT point;
     point.x = x;
     point.y = y;
 
-    std::cout << "Simulating click at\nX - " << point.x << "\nY - " << point.y << std::endl;
+    std::cout << "Adjusted click coordinates:\nX - " << point.x << "\nY - " << point.y << std::endl;
 
-    // Allow time for the window to come to the foreground
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // Convert client coordinates to screen coordinates
+    ClientToScreen(this->Process, &point);
 
-    // Convert screen coordinates to client area coordinates
-    ScreenToClient(this->Process, &point);
-    SetCursorPos(point.x, point.y);
+    // Set the cursor position
+    SetCursorPos(point.x , point.y);
 
     LPARAM lParam = MAKELPARAM(point.x, point.y);
 
-    // Post messages to simulate mouse click
-    PostMessage(this->Process, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
-    PostMessage(this->Process, WM_LBUTTONUP, 0, lParam);
+    // Attempt mouse click using SendInput or another method compatible with Java
+    INPUT input[2] = {};
+    input[0].type = INPUT_MOUSE;
+    input[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    input[1].type = INPUT_MOUSE;
+    input[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+
+    SendInput(2, input, sizeof(INPUT));
+
+    std::cout << "Simulated mouse click at " << point.x << ", " << point.y << std::endl;
 }

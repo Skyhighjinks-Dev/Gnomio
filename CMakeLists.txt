@@ -38,6 +38,7 @@ target_link_libraries(Gnomio PRIVATE
         absl::base  # Adjust with necessary absl components
         absl::strings
         utf8_range::utf8_range
+        Shcore
 )
 
 # Remove MSVC-specific flags if present

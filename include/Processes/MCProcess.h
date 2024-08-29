@@ -8,6 +8,7 @@
 #include <thread>
 #include <vector>
 #include <windows.h>
+#include <ShellScalingAPI.h>
 
 #include <iostream>
 
@@ -18,7 +19,7 @@ private:
 
 public:
     MCProcess(DWORD nProcessID);
-    void SendKeys(const std::string& nMessage, const int nTimeout);
+    void SendKeys(const std::string& nMessage, int nTimeout);
     void ClickCoordinates(const int& x, const int& y) const;
     HWND& GetProcessHandle();
 
@@ -26,4 +27,5 @@ private:
     void RetrieveAndAssignData();
     void SendKey(WORD nKey);
     void SendKeys(std::vector<WORD> nKeys, const int nTimeout);
+    int GetDpiForWindow() const;
 };
