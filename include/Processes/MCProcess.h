@@ -9,6 +9,7 @@
 #include <vector>
 #include <windows.h>
 #include <ShellScalingAPI.h>
+#include <map>
 
 #include <iostream>
 
