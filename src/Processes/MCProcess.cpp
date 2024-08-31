@@ -54,12 +54,34 @@ void MCProcess::SendKeys(std::vector<WORD> nKeys, const int nTimeout) {
     }
 }
 
-void MCProcess::SendKeys(const std::string& nMessage, const int nTimeout) {
-    std::vector<WORD> keys;
-    for (char buff : nMessage) {
-        keys.push_back(static_cast<WORD>(buff));
+WORD CharToVK(char ch) {
+    // Define a mapping for special characters to virtual key codes
+    static std::map<char, WORD> specialKeys = {
+        {'.', VK_OEM_PERIOD},  // Virtual key code for the '.' character
+        // Add more special characters as needed
+    };
+
+    // Check if the character is in the map of special keys
+    if (specialKeys.find(ch) != specialKeys.end()) {
+        return specialKeys[ch];
     }
 
+    // Use VkKeyScan for normal characters, this function will return the virtual key code
+    // combined with shift state information.
+    SHORT vk = VkKeyScanA(ch);
+    return static_cast<WORD>(vk & 0xFF);  // Mask to extract the key code only
+}
+
+// Function to send keys to the process
+void MCProcess::SendKeys(const std::string& nMessage, const int nTimeout) {
+    std::vector<WORD> keys;
+
+    // Convert each character in the message to the corresponding virtual key code
+    for (char buff : nMessage) {
+        keys.push_back(CharToVK(buff));
+    }
+
+    // Call the SendKeys function with the mapped key codes
     SendKeys(keys, nTimeout);
 }
 
