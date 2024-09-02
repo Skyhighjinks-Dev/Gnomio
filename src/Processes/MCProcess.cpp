@@ -145,3 +145,51 @@ void MCProcess::ClickCoordinates(const int &x, const int &y) const {
 
     std::cout << "Simulated mouse click at " << point.x << ", " << point.y << std::endl;
 }
+
+void MCProcess::ConnectToServer() {
+    ConnectToServer(k_HypixelIP);
+}
+
+void MCProcess::ConnectToServer(const std::string& nServerIP) {
+    ClickCoordinates(630, 360);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ClickCoordinates(650, 710);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    SetForegroundWindow(this->Process);
+
+    INPUT input = {0};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = '\b';
+
+    SendInput(1, &input, sizeof(INPUT));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(INPUT));
+
+    SendKeys(nServerIP, 50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    ClickCoordinates(640, 440);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+}
+
+void MCProcess::ConnectToSkyblock() {
+    SendKeys("t/skyblock\r", 50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+}
+
+void MCProcess::StartMelonScript(OCREngine& nEngine) {
+    SendKeys("b", 50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    HWND* procPtr = &(this->Process);
+
+    std::vector<OCRResult> results = nEngine.ProcessOCR(procPtr, "Pumpkin/Melon", OCR_TYPE::TAUNAHI_CENTER_MENU);
+    if(results.size() > 0) {
+        ClickCoordinates(results[0].BoundingBox.x, results[0].BoundingBox.y);
+    }
+    else {
+        std::cout << "COULDNT FIND PUMPKIN/MELON" << std::endl;
+    }
+}
