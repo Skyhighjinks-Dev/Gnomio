@@ -54,28 +54,11 @@ int main() {
     // Set the window size to include the non-client area
     SetWindowPos(hwnd, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE);
 
-    mcManager.GetProcessPtr(0)->ClickCoordinates(630, 360);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mcManager.GetProcessPtr(0)->ClickCoordinates(650, 710);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mcManager.GetProcessPtr(0)->SendKeys("mc.hypixel.net", 50);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    mcManager.GetProcessPtr(0)->ClickCoordinates(640, 440);
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    mcManager.GetProcessPtr(0)->SendKeys("t/skyblock\r", 50);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    mcManager.GetProcessPtr(0)->SendKeys("b", 50);
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
     OCREngine engine;
-    std::vector<OCRResult> results = engine.ProcessOCR(&hwnd, "Pumpkin/Melon", OCR_TYPE::TAUNAHI_CENTER_MENU);
-    if(results.size() > 0) {
-        mcManager.GetProcessPtr(0)->ClickCoordinates(results[0].BoundingBox.x, results[0].BoundingBox.y);
-    }
-    else {
-        std::cout << "COULDNT FIND PUMPKIN/MELON" << std::endl;
-    }
+
+    mcManager.GetProcessPtr(0)->ConnectToServer();
+    mcManager.GetProcessPtr(0)->ConnectToSkyblock();
+    mcManager.GetProcessPtr(0)->StartMelonScript(engine);
 
     std::cout << "\nDone" << std::endl;
 
